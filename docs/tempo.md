@@ -2,8 +2,8 @@
 
 | Fase | Início | Fim | Duração |
 |---|---|---|---|
-| 0. Preparação | 13:50 | | |
-| 1. Setup do framework | | | |
+| 0. Preparação | 13:50 | 13:57 | 7 minutos |
+| 1. Setup do framework | 13:58 | | |
 | 2. Exploração | | | |
 | 3. Plano e execução manual | | | |
 | 4. Defeitos | | | |
