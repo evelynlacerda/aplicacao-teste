@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel de tarefas</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f4f6fb;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(960px, calc(100% - 32px)); margin: 40px auto; }
+    h1, h2 { margin-top: 0; }
+    .subtitle { color: #64708a; margin-top: -10px; }
+    .panel { background: #fff; border: 1px solid #dfe4ee; border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 28px rgba(33, 47, 75, .06); }
+    .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; }
+    label { display: grid; gap: 6px; font-size: 14px; font-weight: 650; }
+    input, select, button { font: inherit; }
+    input, select { width: 100%; border: 1px solid #bdc6d8; border-radius: 8px; padding: 10px 12px; background: #fff; }
+    button { border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 700; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #9ab7ff; outline-offset: 2px; }
+    .primary { color: #fff; background: #315ee8; }
+    .secondary { color: #263655; background: #e7ebf3; }
+    .danger { color: #a82222; background: #ffe2e2; }
+    .message { min-height: 24px; margin: 12px 0 0; color: #b42318; font-weight: 650; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .metric { background: #eef2ff; border-radius: 10px; padding: 14px; }
+    .metric strong { display: block; font-size: 24px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .filters button[aria-pressed="true"] { background: #315ee8; color: #fff; }
+    .task-list { display: grid; gap: 10px; padding: 0; list-style: none; }
+    .task { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; border: 1px solid #dfe4ee; border-radius: 10px; padding: 14px; }
+    .task h3 { margin: 0 0 6px; overflow-wrap: anywhere; }
+    .meta { color: #64708a; font-size: 14px; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .empty { color: #64708a; text-align: center; padding: 24px; }
+
+    @media (max-width: 760px) {
+      .form-grid, .summary { grid-template-columns: 1fr; }
+      .task { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Painel de tarefas</h1>
+      <p class="subtitle">Organize e acompanhe as atividades do time.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="new-task-title">
+      <h2 id="new-task-title">Nova tarefa</h2>
+      <form id="task-form" novalidate>
+        <div class="form-grid">
+          <label>
+            Título
+            <input id="title" name="title" maxlength="80" autocomplete="off">
+          </label>
+          <label>
+            Vencimento
+            <input id="due-date" name="dueDate" type="date">
+          </label>
+          <label>
+            Prioridade
+            <select id="priority" name="priority">
+              <option value="">Selecione</option>
+              <option>Baixa</option>
+              <option>Média</option>
+              <option>Alta</option>
+            </select>
+          </label>
+          <button class="primary" type="submit">Adicionar</button>
+        </div>
+        <p id="form-message" class="message" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="summary-title">
+      <h2 id="summary-title">Resumo</h2>
+      <div class="summary">
+        <div class="metric"><span>Total</span><strong id="total-count">0</strong></div>
+        <div class="metric"><span>Pendentes</span><strong id="pending-count">0</strong></div>
+        <div class="metric"><span>Em andamento</span><strong id="progress-count">0</strong></div>
+        <div class="metric"><span>Concluídas</span><strong id="done-count">0</strong></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="tasks-title">
+      <h2 id="tasks-title">Tarefas</h2>
+      <div class="filters" aria-label="Filtros de tarefas">
+        <button class="secondary" type="button" data-filter="Todas" aria-pressed="true">Todas</button>
+        <button class="secondary" type="button" data-filter="Pendente" aria-pressed="false">Pendentes</button>
+        <button class="secondary" type="button" data-filter="Em andamento" aria-pressed="false">Em andamento</button>
+        <button class="secondary" type="button" data-filter="Concluída" aria-pressed="false">Concluídas</button>
+      </div>
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+  </main>
+
+  <script>
+    let tasks = [];
+    let currentFilter = "Todas";
+    let busy = false;
+
+    const form = document.querySelector("#task-form");
+    const message = document.querySelector("#form-message");
+    const list = document.querySelector("#task-list");
+
+    async function apiRequest(endpoint, options = {}) {
+      let response;
+      try {
+        response = await fetch(`/api/tasks${endpoint}`, options);
+      } catch {
+        throw new Error("Não foi possível conectar ao servidor. Tente novamente.");
+      }
+      const body = response.status === 204 ? null : await response.json();
+      if (!response.ok) throw new Error(body?.error || "Não foi possível executar a operação.");
+      return body;
+    }
+
+    async function loadTasks() {
+      tasks = await apiRequest("");
+      render();
+    }
+
+    async function runAction(action) {
+      if (busy) return;
+      busy = true;
+      message.textContent = "";
+      document.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+      try {
+        await action();
+      } catch (error) {
+        message.textContent = error.message;
+      } finally {
+        busy = false;
+        document.querySelectorAll("button").forEach((button) => { button.disabled = false; });
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (busy) return;
+      message.textContent = "";
+
+      const title = document.querySelector("#title").value;
+      const dueDate = document.querySelector("#due-date").value;
+      const priority = document.querySelector("#priority").value;
+
+      if (title.length < 3) {
+        message.textContent = "O título deve ter ao menos 3 caracteres.";
+        return;
+      }
+
+      if (!dueDate) {
+        message.textContent = "Informe a data de vencimento.";
+        return;
+      }
+
+      if (!priority) {
+        message.textContent = "Selecione a prioridade.";
+        return;
+      }
+
+      runAction(async () => {
+        await apiRequest("", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, dueDate, priority })
+        });
+        form.reset();
+        await loadTasks();
+      });
+    });
+
+    document.querySelectorAll("[data-filter]").forEach((button) => {
+      button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        document.querySelectorAll("[data-filter]").forEach((item) => {
+          item.setAttribute("aria-pressed", String(item === button));
+        });
+        render();
+      });
+    });
+
+    function visibleTasks() {
+      if (currentFilter === "Todas") return tasks;
+      if (currentFilter === "Concluída") {
+        return tasks.filter((task) => task.status === "Concluída" || task.status === "Em andamento");
+      }
+      return tasks.filter((task) => task.status === currentFilter);
+    }
+
+    function advanceTask(id) {
+      const task = tasks.find((item) => item.id === id);
+      if (!task) return;
+      const status = { "Pendente": "Em andamento", "Em andamento": "Concluída" }[task.status];
+      if (!status) return;
+      return runAction(async () => {
+        await apiRequest(`/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status })
+        });
+        await loadTasks();
+      });
+    }
+
+    function removeTask(id) {
+      return runAction(async () => {
+        await apiRequest(`/${id}`, { method: "DELETE" });
+        await loadTasks();
+      });
+    }
+
+    function render() {
+      const visible = visibleTasks();
+      list.replaceChildren();
+
+      if (visible.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nenhuma tarefa encontrada.";
+        list.append(empty);
+      }
+
+      visible.forEach((task) => {
+        const item = document.createElement("li");
+        item.className = "task";
+        item.dataset.taskId = task.id;
+
+        const content = document.createElement("div");
+        const heading = document.createElement("h3");
+        heading.textContent = task.title;
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `Vencimento: ${task.dueDate} · Prioridade: ${task.priority} · Status: ${task.status}`;
+        content.append(heading, meta);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        if (task.status !== "Concluída") {
+          const advance = document.createElement("button");
+          advance.type = "button";
+          advance.className = "secondary";
+          advance.disabled = busy;
+          advance.textContent = task.status === "Pendente" ? "Iniciar" : "Concluir";
+          advance.addEventListener("click", () => advanceTask(task.id));
+          actions.append(advance);
+        }
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "danger";
+        remove.disabled = busy;
+        remove.textContent = "Excluir";
+        remove.addEventListener("click", () => removeTask(task.id));
+        actions.append(remove);
+
+        item.append(content, actions);
+        list.append(item);
+      });
+
+      document.querySelector("#total-count").textContent = visible.length;
+      document.querySelector("#pending-count").textContent = visible.filter((task) => task.status === "Pendente").length;
+      document.querySelector("#progress-count").textContent = visible.filter((task) => task.status === "Em andamento").length;
+      document.querySelector("#done-count").textContent = visible.filter((task) => task.status === "Concluída").length;
+    }
+
+    runAction(loadTasks);
+  </script>
+</body>
+</html>
