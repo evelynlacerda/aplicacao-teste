@@ -561,3 +561,23 @@ Verificar se a aplicação de gerenciamento de tarefas (interface Web + API HTTP
 - A limpeza dos dados ao encerrar o servidor (faz parte do ambiente, não é defeito).
 - Desempenho, segurança, acessibilidade e compatibilidade entre navegadores.
 - Qualquer alteração na aplicação em `aplicacao-teste/`.
+
+---
+
+## 4. Riscos e prioridades
+
+A prioridade de teste combina **impacto** (quanto o defeito prejudica o usuário ou os dados) com **probabilidade** (chance de a regra estar errada, considerando a complexidade e o que a exploração mostrou). Escala: Alta, Média e Baixa.
+
+| # | Risco | Req. | Impacto | Probabilidade | Prioridade | Observado na exploração |
+|---|---|---|---|---|---|---|
+| 1 | Tarefas duplicadas (mesmo título + vencimento) corrompem o cadastro | R15 | Alto | Alta | **Alta** | Falhou (DEF-03) |
+| 2 | Exclusão sem confirmação causa perda de dados | R11 | Alto | Alta | **Alta** | Falhou (DEF-06) |
+| 3 | Filtros e contadores mostram informação errada na tela | R8, R9 | Alto | Alta | **Alta** | Falhou (DEF-04, DEF-05) |
+| 4 | Status avança fora da sequência ou volta de "Concluída" | R6, R7, R18 | Alto | Média | **Alta** | Passou, sem defeitos |
+| 5 | API aceita dados inválidos (data inexistente, prioridade fora da lista) | R2, R3, R13 | Médio | Alta | **Alta** | Falhou (DEF-01, DEF-02) |
+| 6 | Contrato HTTP incorreto para id inexistente (200 em vez de 404, 204 em vez de 404) | R14, R16 | Médio | Alta | **Média** | Falhou (DEF-07, DEF-08) |
+| 7 | Validação de título (limites 3 e 80, trim) | R1 | Médio | Média | **Média** | Passou, sem defeitos |
+| 8 | Tarefas somem ao recarregar a página | R10 | Médio | Baixa | **Baixa** | Passou, sem defeitos |
+| 9 | Rota desconhecida e corpo JSON inválido sem resposta em JSON | R17 | Baixo | Baixa | **Baixa** | Rota desconhecida passou; corpo inválido não testado |
+
+**Ordem de execução e automação:** primeiro os riscos de prioridade Alta (1 a 5), depois os de prioridade Média e por último os de prioridade Baixa.
