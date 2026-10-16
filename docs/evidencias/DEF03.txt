@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "title": "Tarefa base",
+    "dueDate": "2099-12-31",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 2,
+    "title": "abc",
+    "dueDate": "2026-10-20",
+    "priority": "Baixa",
+    "status": "Pendente"
+  },
+  {
+    "id": 3,
+    "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "dueDate": "2026-12-31",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 4,
+    "title": "Data hoje",
+    "dueDate": "2026-10-16",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 5,
+    "title": "Data 30 fev",
+    "dueDate": "2099-02-30",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 6,
+    "title": "Prioridade X",
+    "dueDate": "2099-12-31",
+    "priority": "Urgente",
+    "status": "Pendente"
+  },
+  {
+    "id": 7,
+    "title": "Prioridade caixa",
+    "dueDate": "2099-12-31",
+    "priority": "alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 8,
+    "title": "Prioridade X",
+    "dueDate": "2099-12-31",
+    "priority": "Urgente",
+    "status": "Pendente"
+  },
+  {
+    "id": 9,
+    "title": "Prioridade caixa",
+    "dueDate": "2099-12-31",
+    "priority": "alta",
+    "status": "Pendente"
+  }
+]
+
+- Id 6 e 8 iguais
+- Id 7 e 9 iguais

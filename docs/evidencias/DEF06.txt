@@ -1,0 +1,54 @@
+[
+  {
+    "id": 4,
+    "title": "Data hoje",
+    "dueDate": "2026-10-16",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 5,
+    "title": "Data 30 fev",
+    "dueDate": "2099-02-30",
+    "priority": "Alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 6,
+    "title": "Prioridade X",
+    "dueDate": "2099-12-31",
+    "priority": "Urgente",
+    "status": "Pendente"
+  },
+  {
+    "id": 7,
+    "title": "Prioridade caixa",
+    "dueDate": "2099-12-31",
+    "priority": "alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 8,
+    "title": "Prioridade X",
+    "dueDate": "2099-12-31",
+    "priority": "Urgente",
+    "status": "Pendente"
+  },
+  {
+    "id": 9,
+    "title": "Prioridade caixa",
+    "dueDate": "2099-12-31",
+    "priority": "alta",
+    "status": "Pendente"
+  },
+  {
+    "id": 11,
+    "title": "Teste Interface",
+    "dueDate": "2026-10-16",
+    "priority": "Média",
+    "status": "Concluída"
+  }
+]
+
+- Retorno de GET /api/tasks após as exclusões feitas pela interface (ids 1, 2, 3 e 10 removidos)
+- Nenhum diálogo de confirmação apareceu ao clicar em "Excluir"
